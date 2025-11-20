@@ -14,19 +14,40 @@
         @keydown="handleKeyDown"
       >
         <ThemeProvider class="page">
-          <template v-if="headerElements.length !== 0">
+          <div
+            v-if="elementsPerPagePlaces[PAGE_PLACES.FIXED_HEADER]?.length > 0"
+            class="page__sticky-header"
+          >
+            <ElementPreview
+              v-for="(element, index) in elementsPerPagePlaces[
+                PAGE_PLACES.FIXED_HEADER
+              ]"
+              :key="element.id"
+              :element="element"
+              :is-first-element="element.id === firstElement?.id"
+              :is-copying="copyingElementIndex === index"
+              :application-context-additions="contextAdditions"
+              :show-element-id="showElementId"
+              @move="moveElement($event)"
+            />
+          </div>
+          <template
+            v-if="elementsPerPagePlaces[PAGE_PLACES.HEADER]?.length > 0"
+          >
             <header
               class="page__header"
               :class="{
                 'page__header--element-selected':
-                  pageSectionWithSelectedElement === 'header',
+                  pageSectionWithSelectedElement === PAGE_PLACES.HEADER,
               }"
             >
               <ElementPreview
-                v-for="(element, index) in headerElements"
+                v-for="(element, index) in elementsPerPagePlaces[
+                  PAGE_PLACES.HEADER
+                ]"
                 :key="element.id"
                 :element="element"
-                :is-first-element="index === 0"
+                :is-first-element="element.id === firstElement?.id"
                 :is-copying="copyingElementIndex === index"
                 :application-context-additions="{
                   recordIndexPath: [],
@@ -42,7 +63,7 @@
               </span>
             </div>
           </template>
-          <template v-if="elements.length === 0">
+          <template v-if="!elementsPerPagePlaces[PAGE_PLACES.CONTENT]?.length">
             <AddElementZone
               class="add-element-zone--full-height"
               :page="currentPage"
@@ -55,14 +76,16 @@
               class="page__content"
               :class="{
                 'page__content--element-selected':
-                  pageSectionWithSelectedElement === 'content',
+                  pageSectionWithSelectedElement === PAGE_PLACES.CONTENT,
               }"
             >
               <ElementPreview
-                v-for="(element, index) in elements"
+                v-for="(element, index) in elementsPerPagePlaces[
+                  PAGE_PLACES.CONTENT
+                ]"
                 :key="element.id"
                 :element="element"
-                :is-first-element="index === 0 && headerElements.length === 0"
+                :is-first-element="element.id === firstElement?.id"
                 :is-copying="copyingElementIndex === index"
                 :application-context-additions="{
                   recordIndexPath: [],
@@ -73,7 +96,9 @@
               />
             </div>
           </template>
-          <template v-if="footerElements.length !== 0">
+          <template
+            v-if="elementsPerPagePlaces[PAGE_PLACES.FOOTER]?.length > 0"
+          >
             <div class="page-preview__separator">
               <span class="page-preview__separator-label">
                 {{ $t('pagePreview.footer') }}
@@ -83,18 +108,16 @@
               class="page__footer"
               :class="{
                 'page__footer--element-selected':
-                  pageSectionWithSelectedElement === 'footer',
+                  pageSectionWithSelectedElement === PAGE_PLACES.FOOTER,
               }"
             >
               <ElementPreview
-                v-for="(element, index) in footerElements"
+                v-for="(element, index) in elementsPerPagePlaces[
+                  PAGE_PLACES.FOOTER
+                ]"
                 :key="element.id"
                 :element="element"
-                :is-first-element="
-                  index === 0 &&
-                  headerElements.length === 0 &&
-                  elements.length === 0
-                "
+                :is-first-element="element.id === firstElement?.id"
                 :is-copying="copyingElementIndex === index"
                 :application-context-additions="{
                   recordIndexPath: [],
@@ -133,6 +156,7 @@ import AddElementModal from '@baserow/modules/builder/components/elements/AddEle
 import ThemeProvider from '@baserow/modules/builder/components/theme/ThemeProvider.vue'
 import BuilderToasts from '@baserow/modules/builder/components/BuilderToasts'
 import AddElementZone from '@baserow/modules/builder/components/elements/AddElementZone'
+import _ from 'lodash'
 
 export default {
   name: 'PagePreview',
@@ -200,19 +224,25 @@ export default {
     sharedElements() {
       return this.$store.getters['element/getRootElements'](this.sharedPage)
     },
-    headerElements() {
-      return this.sharedElements.filter(
-        (element) =>
-          this.$registry.get('element', element.type).getPagePlace() ===
-          PAGE_PLACES.HEADER
+    elementsPerPagePlaces() {
+      return _.groupBy([...this.elements, ...this.sharedElements], (element) =>
+        this.$registry.get('element', element.type).getPagePlace(element)
       )
     },
-    footerElements() {
-      return this.sharedElements.filter(
-        (element) =>
-          this.$registry.get('element', element.type).getPagePlace() ===
-          PAGE_PLACES.FOOTER
-      )
+    firstElement() {
+      const firstPlaceWithElement = [
+        PAGE_PLACES.FIXED_HEADER,
+        PAGE_PLACES.HEADER,
+        PAGE_PLACES.CONTENT,
+      ].find((place) => this.elementsPerPagePlaces[place]?.length > 0)
+
+      if (firstPlaceWithElement) {
+        return this.elementsPerPagePlaces[firstPlaceWithElement][0]
+      }
+      return null
+    },
+    PAGE_PLACES() {
+      return PAGE_PLACES
     },
     elementSelectedId() {
       return this.elementSelected?.id
@@ -223,31 +253,30 @@ export default {
       }
       return this.$registry.get('element', this.elementSelected.type)
     },
-    pageSectionWithSelectedElement() {
+    firstSelectedElementAncestor() {
       if (!this.elementSelected) {
         return null
       }
-      if (this.elementSelected.page_id === this.currentPage.id) {
-        return PAGE_PLACES.CONTENT
-      }
+
       const ancestorWithPagePlace = this.$store.getters['element/getAncestors'](
         this.elementSelectedPage,
         this.elementSelected,
         {
           includeSelf: true,
           predicate: (parentElement) => {
-            return (
-              this.$registry
-                .get('element', parentElement.type)
-                .getPagePlace() !== PAGE_PLACES.CONTENT
-            )
+            return parentElement.parent_element_id === null
           },
         }
       )[0]
-
+      return ancestorWithPagePlace
+    },
+    pageSectionWithSelectedElement() {
+      if (!this.firstSelectedElementAncestor) {
+        return null
+      }
       return this.$registry
-        .get('element', ancestorWithPagePlace.type)
-        .getPagePlace()
+        .get('element', this.firstSelectedElementAncestor.type)
+        .getPagePlace(this.firstSelectedElementAncestor)
     },
     elementsAround() {
       if (!this.elementSelected) {
