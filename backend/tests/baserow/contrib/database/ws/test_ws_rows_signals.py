@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from typing import Any, Dict, List
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 from django.db import transaction
 
@@ -323,6 +323,7 @@ def test_rows_history_updated(
             },
             None,
             None,
+            ANY,
         ),
     ]
 
@@ -350,6 +351,7 @@ def test_rows_history_updated(
                         "table_id": table.id,
                         "row_id": row1.id,
                     },
+                    ANY,
                 ),
                 (
                     f"table-{table.id}-row-{row2.id}",
@@ -372,6 +374,7 @@ def test_rows_history_updated(
                         "table_id": table.id,
                         "row_id": row2.id,
                     },
+                    ANY,
                 ),
             ],
             # limit to channel/user - empty here

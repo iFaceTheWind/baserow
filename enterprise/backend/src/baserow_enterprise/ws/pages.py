@@ -1,3 +1,6 @@
+from functools import lru_cache
+from typing import Optional
+
 from baserow.contrib.database.views.exceptions import ViewDoesNotExist
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.core.exceptions import PermissionDenied, UserNotInWorkspace
@@ -7,6 +10,23 @@ from baserow_enterprise.view_ownership_types import RestrictedViewOwnershipType
 from baserow_enterprise.views.operations import (
     ListenToAllRestrictedViewEventsOperationType,
 )
+
+
+@lru_cache(maxsize=1024)
+def _workspace_id_for_view(view_id: int) -> Optional[int]:
+    """Per-process cache of view_id -> workspace_id (via table.database)."""
+
+    from baserow.contrib.database.views.models import View
+
+    try:
+        return (
+            View.objects_and_trash.select_related("table__database")
+            .only("id", "table__database__workspace_id")
+            .get(id=view_id)
+            .table.database.workspace_id
+        )
+    except View.DoesNotExist:
+        return None
 
 
 class RestrictedViewPageType(PageType):
@@ -49,3 +69,6 @@ class RestrictedViewPageType(PageType):
 
     def get_permission_channel_group_name(self, restricted_view_id, **kwargs):
         return f"permissions-restricted-view-{restricted_view_id}"
+
+    def get_workspace_id(self, restricted_view_id, **kwargs):
+        return _workspace_id_for_view(restricted_view_id)

@@ -53,7 +53,7 @@ def test_when_row_created_public_views_receive_restricted_row_created_ws_event(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_only_showing_one_field.slug}",
                 {
@@ -70,6 +70,7 @@ def test_when_row_created_public_views_receive_restricted_row_created_ws_event(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -91,6 +92,7 @@ def test_when_row_created_public_views_receive_restricted_row_created_ws_event(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -154,7 +156,7 @@ def test_when_row_created_public_views_receive_row_created_only_when_filters_mat
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -171,6 +173,7 @@ def test_when_row_created_public_views_receive_row_created_only_when_filters_mat
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -217,7 +220,7 @@ def test_batch_rows_created_public_views_receive_restricted_row_created_ws_event
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_only_showing_one_field.slug}",
                 {
@@ -240,6 +243,7 @@ def test_batch_rows_created_public_views_receive_restricted_row_created_ws_event
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -269,6 +273,7 @@ def test_batch_rows_created_public_views_receive_restricted_row_created_ws_event
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -334,7 +339,7 @@ def test_batch_rows_created_public_views_receive_row_created_when_filters_match(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -357,6 +362,7 @@ def test_batch_rows_created_public_views_receive_row_created_when_filters_match(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -396,7 +402,7 @@ def test_when_row_deleted_public_views_receive_restricted_row_deleted_ws_event(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_only_showing_one_field.slug}",
                 {
@@ -412,6 +418,7 @@ def test_when_row_deleted_public_views_receive_restricted_row_deleted_ws_event(
                         }
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -432,6 +439,7 @@ def test_when_row_deleted_public_views_receive_restricted_row_deleted_ws_event(
                         }
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -495,7 +503,7 @@ def test_when_row_deleted_public_views_receive_row_deleted_only_when_filters_mat
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -511,6 +519,7 @@ def test_when_row_deleted_public_views_receive_row_deleted_only_when_filters_mat
                         }
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -558,7 +567,7 @@ def test_batch_rows_deleted_public_views_receive_restricted_row_deleted_ws_event
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_only_showing_one_field.slug}",
                 {
@@ -580,6 +589,7 @@ def test_batch_rows_deleted_public_views_receive_restricted_row_deleted_ws_event
                         },
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -608,6 +618,7 @@ def test_batch_rows_deleted_public_views_receive_restricted_row_deleted_ws_event
                         },
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -679,7 +690,7 @@ def test_batch_rows_deleted_public_views_receive_row_deleted_only_when_filters_m
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -695,6 +706,7 @@ def test_batch_rows_deleted_public_views_receive_row_deleted_only_when_filters_m
                         }
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -765,7 +777,7 @@ def test_given_row_not_visible_in_public_view_when_updated_to_be_visible_event_s
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_filters_initially_hiding_all_rows.slug}",
                 {
@@ -784,6 +796,7 @@ def test_given_row_not_visible_in_public_view_when_updated_to_be_visible_event_s
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -873,7 +886,7 @@ def test_batch_update_rows_not_visible_in_public_view_to_be_visible_event_sent(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_filters_initially_hiding_all_rows.slug}",
                 {
@@ -898,6 +911,7 @@ def test_batch_update_rows_not_visible_in_public_view_to_be_visible_event_sent(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -985,7 +999,7 @@ def test_batch_update_rows_some_not_visible_in_public_view_to_be_visible_event_s
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_filters_initially_hiding_all_rows.slug}",
                 {
@@ -1002,6 +1016,7 @@ def test_batch_update_rows_some_not_visible_in_public_view_to_be_visible_event_s
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -1029,6 +1044,7 @@ def test_batch_update_rows_some_not_visible_in_public_view_to_be_visible_event_s
                     "metadata": {},
                     "updated_field_ids": [hidden_field.id],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1124,7 +1140,7 @@ def test_batch_update_rows_visible_in_public_view_to_some_not_be_visible_event_s
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_filters_initially_hiding_all_rows.slug}",
                 {
@@ -1140,6 +1156,7 @@ def test_batch_update_rows_visible_in_public_view_to_some_not_be_visible_event_s
                         },
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1167,6 +1184,7 @@ def test_batch_update_rows_visible_in_public_view_to_some_not_be_visible_event_s
                     "metadata": {},
                     "updated_field_ids": [hidden_field.id],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1239,7 +1257,7 @@ def test_given_row_visible_in_public_view_when_updated_to_be_not_visible_event_s
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_row_showing.slug}",
                 {
@@ -1258,6 +1276,7 @@ def test_given_row_visible_in_public_view_when_updated_to_be_not_visible_event_s
                         }
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1348,7 +1367,7 @@ def test_batch_update_rows_visible_in_public_view_to_be_not_visible_event_sent(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_row_showing.slug}",
                 {
@@ -1374,6 +1393,7 @@ def test_batch_update_rows_visible_in_public_view_to_be_not_visible_event_sent(
                         },
                     ],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1446,7 +1466,7 @@ def test_given_row_visible_in_public_view_when_updated_to_still_be_visible_event
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_row_showing.slug}",
                 {
@@ -1471,6 +1491,7 @@ def test_given_row_visible_in_public_view_when_updated_to_still_be_visible_event
                     "metadata": {},
                     "updated_field_ids": unordered([visible_field.id, hidden_field.id]),
                 },
+                None,
                 None,
                 None,
             ),
@@ -1561,7 +1582,7 @@ def test_batch_update_rows_visible_in_public_view_still_be_visible_event_sent(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_row_showing.slug}",
                 {
@@ -1598,6 +1619,7 @@ def test_batch_update_rows_visible_in_public_view_still_be_visible_event_sent(
                     "metadata": {},
                     "updated_field_ids": unordered([visible_field.id, hidden_field.id]),
                 },
+                None,
                 None,
                 None,
             ),
@@ -1657,7 +1679,7 @@ def test_batch_update_subset_rows_visible_in_public_view_no_filters(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_with_row_showing.slug}",
                 {
@@ -1680,6 +1702,7 @@ def test_batch_update_subset_rows_visible_in_public_view_no_filters(
                     "metadata": {},
                     "updated_field_ids": [visible_field.id],
                 },
+                None,
                 None,
                 None,
             ),
@@ -1720,7 +1743,7 @@ def test_when_row_restored_public_views_receive_restricted_row_created_ws_event(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_only_showing_one_field.slug}",
                 {
@@ -1737,6 +1760,7 @@ def test_when_row_restored_public_views_receive_restricted_row_created_ws_event(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -1758,6 +1782,7 @@ def test_when_row_restored_public_views_receive_restricted_row_created_ws_event(
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -1822,7 +1847,7 @@ def test_when_row_restored_public_views_receive_row_created_only_when_filters_ma
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -1839,6 +1864,7 @@ def test_when_row_restored_public_views_receive_row_created_only_when_filters_ma
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -1918,7 +1944,7 @@ def test_batch_rows_created_public_views_receive_rows_created_only_when_filters_
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view_showing_row.slug}",
                 {
@@ -1941,6 +1967,7 @@ def test_batch_rows_created_public_views_receive_rows_created_only_when_filters_
                     "metadata": {},
                     "before_row_id": None,
                 },
+                None,
                 None,
                 None,
             ),
@@ -2014,7 +2041,7 @@ def test_given_row_visible_in_public_view_when_moved_row_updated_sent(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"view-{public_view.slug}",
                 {
@@ -2041,6 +2068,7 @@ def test_given_row_visible_in_public_view_when_moved_row_updated_sent(
                     "metadata": {},
                     "updated_field_ids": [],
                 },
+                None,
                 None,
                 None,
             ),
@@ -2114,6 +2142,6 @@ def test_given_row_invisible_in_public_view_when_moved_no_update_sent(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
         ]
     )

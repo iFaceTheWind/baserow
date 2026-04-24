@@ -78,6 +78,34 @@ class PageType(Instance):
 
         return None
 
+    def get_workspace_id(self, **kwargs) -> Optional[int]:
+        """
+        Returns the workspace id this page belongs to, given the page parameters.
+        Used by ``broadcast`` / ``broadcast_many`` to tag the outgoing payload
+        with ``workspace_id`` so a row can be recorded in
+        ``ws_realtime_updates`` for reconnect-time staleness detection.
+
+        Returning ``None`` (the default) means the page is not workspace-scoped
+        (e.g. a public-view page accessed anonymously) and broadcasts from it
+        will not be recorded.
+
+        :param kwargs: The additional parameters including their provided values.
+        :return: The workspace id, or None if the page is not workspace-scoped.
+        """
+
+        return None
+
+    def _resolve_workspace_id(self, payload, **kwargs) -> Optional[int]:
+        """
+        Returns the workspace_id for this broadcast. If the payload already
+        carries one, use it; otherwise derive it from the page parameters via
+        ``get_workspace_id``.
+        """
+
+        if isinstance(payload, dict) and "workspace_id" in payload:
+            return payload["workspace_id"]
+        return self.get_workspace_id(**kwargs)
+
     def broadcast(
         self, payload, ignore_web_socket_id=None, exclude_user_ids=None, **kwargs
     ):
@@ -97,11 +125,13 @@ class PageType(Instance):
         :type kwargs: dict
         """
 
+        ws_id = self._resolve_workspace_id(payload, **kwargs)
         broadcast_to_channel_group.delay(
             self.get_group_name(**kwargs),
             payload,
             ignore_web_socket_id,
             exclude_user_ids,
+            ws_id,
         )
 
     def broadcast_many(
@@ -126,14 +156,17 @@ class PageType(Instance):
         :return:
         """
 
-        broadcast_many_to_channel_group.delay(
-            [
+        prepared: list[tuple[str, dict, Optional[int]]] = []
+        for group_kw, payload in payloads_with_groups:
+            prepared.append(
                 (
                     self.get_group_name(**group_kw),
                     payload,
+                    self._resolve_workspace_id(payload, **group_kw),
                 )
-                for group_kw, payload in payloads_with_groups
-            ],
+            )
+        broadcast_many_to_channel_group.delay(
+            prepared,
             ignore_web_socket_id,
             exclude_user_ids,
         )

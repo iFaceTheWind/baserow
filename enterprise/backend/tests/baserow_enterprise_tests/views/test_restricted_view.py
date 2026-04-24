@@ -160,7 +160,7 @@ def test_when_row_created_restricted_views_receive_restricted_row_ws_event(
 
     assert mock_broadcast_to_channel_group.delay.mock_calls == (
         [
-            call(f"table-{table.id}", ANY, ANY, None),
+            call(f"table-{table.id}", ANY, ANY, None, ANY),
             call(
                 f"restricted-view-{restricted_view.id}",
                 {
@@ -178,6 +178,7 @@ def test_when_row_created_restricted_views_receive_restricted_row_ws_event(
                 },
                 None,
                 None,
+                ANY,
             ),
             call(
                 f"view-{public_and_restricted_view.slug}",
@@ -196,6 +197,7 @@ def test_when_row_created_restricted_views_receive_restricted_row_ws_event(
                 },
                 None,
                 None,
+                ANY,
             ),
             call(
                 f"restricted-view-{public_and_restricted_view.id}",
@@ -214,6 +216,7 @@ def test_when_row_created_restricted_views_receive_restricted_row_ws_event(
                 },
                 None,
                 None,
+                ANY,
             ),
         ]
     )
@@ -1851,14 +1854,15 @@ def test_broadcast_payload_to_all_restricted_views_no_n_plus_one_queries(
     total_views = num_views_per_type * 5
     payload = {"type": "field_created", "field": {"id": visible_field.id}}
 
-    # The query count should be constant regardless of the number of views.
     # We expect:
     # 1. Base View query (with content_type select_related)
     # 2-3. Prefetch for table__field_set (table lookup + field_set lookup)
     # 4-13. One query per content type (5 types) to fetch specific view subclass
     #       rows + one prefetch query per content type for the field options
-    # Total: 1 (base) + 2 (table + field_set) + 5 (specific) + 5 (options) = 13
-    with django_assert_num_queries(13):
+    # 14. workspace_id lookup via _workspace_id_for_table (single call,
+    #     injected into payload before the per-view loop)
+    # Total: 1 (base) + 2 (table + field_set) + 5 (specific) + 5 (options) + 1 (workspace) = 14
+    with django_assert_num_queries(14):
         _broadcast_payload_to_all_restricted_views(
             user, table.id, payload, field_id=visible_field.id
         )
@@ -1868,6 +1872,7 @@ def test_broadcast_payload_to_all_restricted_views_no_n_plus_one_queries(
     mock_broadcast_to_channel_group.delay.reset_mock()
 
     # Now test with a hidden field — no broadcasts should be made, same query count.
+    # workspace_id lookups are cached from the first call, so no extra queries.
     payload_hidden = {"type": "field_created", "field": {"id": hidden_field.id}}
     with django_assert_num_queries(13):
         _broadcast_payload_to_all_restricted_views(

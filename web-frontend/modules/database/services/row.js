@@ -175,9 +175,7 @@ export default (client) => {
 
       return client.post(
         `/database/rows/table/${tableId}/batch-delete/`,
-        {
-          items,
-        },
+        { items },
         config
       )
     },

@@ -157,6 +157,11 @@ class CoreConsumer(AsyncJsonWebsocketConsumer):
         """
         Processes incoming messages.
         """
+        msg_type = content.get("type", "")
+
+        if msg_type == "workspace_realtime_subscribe":
+            await self._workspace_realtime_subscribe(content)
+            return
 
         if "page" in content:
             await self._add_page_scope(content)
@@ -329,6 +334,57 @@ class CoreConsumer(AsyncJsonWebsocketConsumer):
                         **page_scope.page_parameters,
                     }
                     await self._remove_page_scope(content, send_confirmation=True)
+
+    async def _workspace_realtime_subscribe(self, content: dict):
+        """
+        On every websocket open the frontend sends this message with the active
+        workspace. It either baselines the client (``last_seen_id`` is null) or
+        asks whether anything was broadcast in the workspace by another
+        ``web_socket_id`` since ``last_seen_id``. Authentication and workspace
+        membership are required; unauthorized requests are silently dropped to
+        avoid leaking workspace existence.
+        """
+
+        from baserow.config.settings.utils import try_int
+        from baserow.ws.realtime_updates import (
+            check_workspace_realtime_updates,
+            is_workspace_member,
+        )
+
+        user = self.scope.get("user")
+        if user is None or not getattr(user, "is_authenticated", False):
+            return
+
+        workspace_id = try_int(content.get("workspace_id"))
+        if workspace_id is None or workspace_id <= 0:
+            return
+
+        is_member = await database_sync_to_async(is_workspace_member)(
+            user.id, workspace_id
+        )
+        if not is_member:
+            return
+
+        raw_last_seen = content.get("last_seen_id")
+        last_seen_id = try_int(raw_last_seen) if raw_last_seen is not None else None
+        previous_web_socket_id = content.get("previous_web_socket_id")
+        if previous_web_socket_id is not None and not isinstance(
+            previous_web_socket_id, str
+        ):
+            previous_web_socket_id = None
+
+        has_updates, current_latest_id = await database_sync_to_async(
+            check_workspace_realtime_updates
+        )(workspace_id, last_seen_id, previous_web_socket_id)
+
+        await self.send_json(
+            {
+                "type": "workspace_realtime_subscribe_result",
+                "workspace_id": workspace_id,
+                "has_updates": has_updates,
+                "current_latest_id": current_latest_id,
+            }
+        )
 
     # Event handlers
 

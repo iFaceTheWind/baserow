@@ -1,3 +1,6 @@
+from functools import lru_cache
+from typing import Optional
+
 from django.conf import settings
 
 from baserow.contrib.database.rows.exceptions import RowDoesNotExist
@@ -16,6 +19,28 @@ from baserow.contrib.database.views.registries import view_type_registry
 from baserow.core.exceptions import PermissionDenied, UserNotInWorkspace
 from baserow.core.handler import CoreHandler
 from baserow.ws.registries import PageType
+
+
+@lru_cache(maxsize=1024)
+def _workspace_id_for_table(table_id: int) -> Optional[int]:
+    """
+    Per-process cache of ``table_id -> workspace_id``. The mapping is stable
+    for the lifetime of a table (tables don't move between databases, and
+    deleted tables don't fire fresh broadcasts), so caching indefinitely is
+    safe; stale entries for deleted tables simply stop being looked up.
+    """
+
+    from baserow.contrib.database.table.models import Table
+
+    try:
+        table = (
+            Table.objects_and_trash.select_related("database")
+            .only("id", "database__workspace_id")
+            .get(id=table_id)
+        )
+    except Table.DoesNotExist:
+        return None
+    return table.database.workspace_id
 
 
 class TablePageType(PageType):
@@ -50,6 +75,9 @@ class TablePageType(PageType):
 
     def get_permission_channel_group_name(self, table_id, **kwargs):
         return f"permissions-table-{table_id}"
+
+    def get_workspace_id(self, table_id, **kwargs):
+        return _workspace_id_for_table(table_id)
 
 
 class PublicViewPageType(PageType):

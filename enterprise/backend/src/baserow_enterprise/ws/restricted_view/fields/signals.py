@@ -8,6 +8,7 @@ from baserow.contrib.database.fields import signals as field_signals
 from baserow.contrib.database.views.models import View
 from baserow.contrib.database.views.registries import view_type_registry
 from baserow.contrib.database.ws.fields.signals import RealtimeFieldMessages
+from baserow.contrib.database.ws.pages import _workspace_id_for_table
 from baserow.core.db import specific_iterator
 from baserow.ws.registries import page_registry
 from baserow_enterprise.view_ownership_types import RestrictedViewOwnershipType
@@ -19,6 +20,10 @@ def _broadcast_payload_to_all_restricted_views(
     payload: Dict[str, Any],
     field_id: Optional[int] = None,
 ):
+    ws_id = _workspace_id_for_table(table_id)
+    if ws_id is not None:
+        payload["workspace_id"] = ws_id
+
     base_qs = View.objects.filter(
         table_id=table_id,
         ownership_type=RestrictedViewOwnershipType.type,

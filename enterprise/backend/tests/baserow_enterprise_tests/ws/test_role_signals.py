@@ -514,10 +514,8 @@ async def test_unsubscribe_user_from_tables_and_rows_when_role_updated(data_fixt
     }
 
     response = await communicator.receive_json_from(timeout=0.1)
-    assert response == {
-        "type": "permissions_updated",
-        "workspace_id": workspace_1.id,
-    }
+    assert response["type"] == "permissions_updated"
+    assert response["workspace_id"] == workspace_1.id
 
     # User should not receive any messages to a table in workspace 1
     await send_message_to_channel_group(
@@ -606,10 +604,8 @@ async def test_unsubscribe_user_from_tables_and_rows_when_team_trashed(
     }
 
     response = await communicator.receive_json_from(timeout=0.1)
-    assert response == {
-        "type": "permissions_updated",
-        "workspace_id": workspace_1.id,
-    }
+    assert response["type"] == "permissions_updated"
+    assert response["workspace_id"] == workspace_1.id
 
     # User should not receive any messages to a table in workspace 1
     await send_message_to_channel_group(

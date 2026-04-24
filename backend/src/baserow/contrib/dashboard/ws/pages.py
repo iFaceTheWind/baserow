@@ -1,9 +1,28 @@
+from functools import lru_cache
+from typing import Optional
+
 from baserow.contrib.dashboard.exceptions import DashboardDoesNotExist
 from baserow.contrib.dashboard.handler import DashboardHandler
 from baserow.contrib.dashboard.widgets.operations import ListWidgetsOperationType
 from baserow.core.exceptions import PermissionException
 from baserow.core.handler import CoreHandler
 from baserow.ws.registries import PageType
+
+
+@lru_cache(maxsize=1024)
+def _workspace_id_for_dashboard(dashboard_id: int) -> Optional[int]:
+    """Per-process cache of dashboard_id -> workspace_id."""
+
+    from baserow.contrib.dashboard.models import Dashboard
+
+    try:
+        return (
+            Dashboard.objects_and_trash.only("id", "workspace_id")
+            .get(id=dashboard_id)
+            .workspace_id
+        )
+    except Dashboard.DoesNotExist:
+        return None
 
 
 class DashboardPageType(PageType):
@@ -37,3 +56,6 @@ class DashboardPageType(PageType):
 
     def get_permission_channel_group_name(self, dashboard_id, **kwargs):
         return f"permissions-dashboard-{dashboard_id}"
+
+    def get_workspace_id(self, dashboard_id, **kwargs):
+        return _workspace_id_for_dashboard(dashboard_id)
