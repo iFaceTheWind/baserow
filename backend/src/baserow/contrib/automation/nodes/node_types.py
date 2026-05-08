@@ -69,6 +69,7 @@ from baserow.core.services.registries import service_type_registry
 
 class AutomationNodeActionNodeType(AutomationNodeType):
     is_workflow_action = True
+    dispatch_cost = 1
 
     def before_create(self, workflow, reference_node, position, output):
         if reference_node is None:
@@ -81,6 +82,7 @@ class AutomationNodeActionNodeType(AutomationNodeType):
 
 class ContainerNodeTypeMixin:
     is_container = True
+    dispatch_cost = 0
 
     def before_delete(self, node: "ContainerNodeTypeMixin"):
         if node.workflow.get_graph().get_children(node):
@@ -171,6 +173,7 @@ class CoreHttpRequestNodeType(AutomationNodeActionNodeType):
     type = "http_request"
     model_class = CoreHTTPRequestActionNode
     service_type = CoreHTTPRequestServiceType.type
+    dispatch_cost = 0
 
 
 class CoreIteratorNodeType(ContainerNodeTypeMixin, AutomationNodeActionNodeType):
@@ -195,6 +198,7 @@ class CoreRouterActionNodeType(AutomationNodeActionNodeType):
     type = "router"
     model_class = CoreRouterActionNode
     service_type = CoreRouterServiceType.type
+    dispatch_cost = 0
 
     def has_node_on_edge(self, node: CoreRouterActionNode) -> bool:
         """
