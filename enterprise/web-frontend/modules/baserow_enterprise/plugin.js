@@ -93,6 +93,7 @@ import { CustomCodeBuilderSettingType } from '@baserow_enterprise/builderSetting
 import { RealtimePushTwoWaySyncStrategyType } from '@baserow_enterprise/twoWaySyncStrategyTypes'
 import { RestrictedViewOwnershipType } from '@baserow_enterprise/viewOwnershipTypes'
 import { AIDatabaseOnboardingStepType } from '@baserow_enterprise/databaseOnboardingStepTypes'
+import { LocalBaserowGroupedAggregateRowsServiceType } from '@baserow_enterprise/integrations/localBaserow/serviceTypes'
 
 export default defineNuxtPlugin({
   name: 'enterprise',
@@ -180,6 +181,11 @@ export default defineNuxtPlugin({
 
     $registry.register('element', new AuthFormElementType(context))
     $registry.register('element', new FileInputElementType(context))
+
+    $registry.register(
+      'service',
+      new LocalBaserowGroupedAggregateRowsServiceType(context)
+    )
 
     $registry.unregister('dataSync', PostgreSQLDataSyncType.getType())
     $registry.register('dataSync', new PostgreSQLDataSyncType(context))

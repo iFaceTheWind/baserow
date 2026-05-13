@@ -647,6 +647,16 @@
     "viewFieldLabel": "View",
     "notSelected": "Not selected"
   },
+  "localBaserowGroupedAggregateRowsForm": {
+    "series": "Series",
+    "addSeries": "Add series"
+  },
+  "serviceType": {
+    "localBaserowGroupedAggregateRows": "Grouped aggregate rows",
+    "localBaserowGroupedAggregateRowsDescription": "Group and aggregate rows from a Baserow table.",
+    "errorNoAggregationSeriesDefined": "No aggregation series defined.",
+    "errorIncompleteAggregationSeries": "One or more aggregation series are incomplete."
+  },
   "aggregationSeriesForm": {
     "aggregationFieldLabel": "Field",
     "aggregationTypeLabel": "Summary",
